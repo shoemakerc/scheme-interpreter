@@ -16,85 +16,110 @@
 // binding is a variable name (represented as a string), and a pointer to the
 // Value it is bound to. Specifically how you implement the list of bindings is
 // up to you.
-/*struct Frame {
-    Value *bindings;
-    struct Frame *parent;
-};*/
 
-Frame *newFrameLet(Frame *frames, Value *val){
-    printf("test4");
-    val = car(val);
-    Frame *newFrame = talloc(sizeof(frames));
-    newFrame->bindings = val;
-    newFrame->parent = frames;
-    return newFrame;
+void evaluationError() {
+    printf("evaluation error\n");
+    texit(1);
 }
 
-//typedef struct Frame Frame;
-
 void interpret(Value *tree){
-    printf("test3");
+    //printf("test3");
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
-    while (tree->type == CONS_TYPE){
+    while (tree->type != NULL_TYPE) {
         answer = eval(car(tree), globalFrame);
+        if (answer->type == INT_TYPE) {
+            printf("%d\n", answer->i);
+        } else if (answer->type == DOUBLE_TYPE) {
+            printf("%f\n", answer->d);
+        } else if (answer->type == STR_TYPE) {
+            printf("%s\n", answer->s);
+        }
         tree = cdr(tree);
     }
 }
 
+//Value *lookUpSymbol(Value *tree, Frame *frames) {
+//    Value *temp;
+//    while (frames)
+//}
+
                    
-Value *evalIf(Value *args, Frame *frames){
-    printf("test2");
-    Value *answer = eval(car(args), frames);
-    if (answer->c.car->i == '1'){
+Value *evalIf(Value *args, Frame *frames) {
+    //printf("test2");
+    if (car(args)->type != BOOL_TYPE) {
+        evaluationError();
+    }
+    if (args->c.car->i == 1){
+        if (cdr(args)->type == NULL_TYPE) {
+            evaluationError();
+        }
+        if (cdr(cdr(args))->type == NULL_TYPE) {
+            evaluationError();
+        }
         return eval(car(cdr(args)), frames);
     }
     else {
+        if (cdr(args)->type == NULL_TYPE) {
+            evaluationError();
+        }
+        if (cdr(cdr(args))->type == NULL_TYPE) {
+            evaluationError();
+        }
         return eval(car(cdr(cdr(args))), frames);
     }
 }
 
+//Value *evalLet(Value *args, Frame *frames) {
+//    Frame *newFrame = talloc(sizeof(Frame));
+//    newFrame->parent = frames;
+//    newFrame->bindings = makeNull();
+//}
+
 
 Value *eval(Value *tree, Frame *frame) {
-    printf("test1");
-    Value *frames;
+    //printf("test1");
+    //Value *frames;
     Value *result;
+    Value *first;
+    Value *args;
     switch (tree->type)  {
-        case INT_TYPE: {
-        printf("%d ", tree->c.car->i);
-        break;
-     }
-     case CONS_TYPE: {
-        Value *first = car(tree);
-        Value *args = cdr(tree);
-
-        // Sanity and error checking on first...
-
-        if (!strcmp(first->s,"if")) {
-            result = evalIf(args,frame);
-        }
-        else if (!strcmp(first->s,"let")) {
-            frames = newFrameLet(args,frame);
-            result = eval(car(cdr(args)), frame);
-              }
-          }
-      }
-        //break;
-/*     case ......: {
-        ...
-        break;
-     }  
-     case SYMBOL_TYPE: {
-        return lookUpSymbol(tree, frame);
-        break;*/
-        // .. other special forms here...
-/*
-        else {
-           // not a recognized special form
-           evalationError();
-        }*/
-     
+        case INT_TYPE:
+            return tree;
+            break;
+        case DOUBLE_TYPE:
+            return tree;
+            break;
+        case STR_TYPE:
+            return tree;
+            break;
+        case CONS_TYPE:
+            first = car(tree);
+            args = cdr(tree);
+            
+            // Sanity and error checking on first...
+            if (!strcmp(first->s,"if")) 
+            {
+                result = evalIf(args,frame);
+                return result;
+            } 
+//            else if (!strcmp(first->s,"let")) {
+//                frames = newFrameLet(args,frame);
+//                result = eval(car(cdr(args)), frame);
+//                return result;
+//              }
+            else {
+                evaluationError();
+            }
+            break;
+        case BOOL_TYPE:
+            return tree;
+            break;
+        default:
+            return tree;
+            break;
     }
+}
 
 
