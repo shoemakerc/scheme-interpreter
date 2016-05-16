@@ -2,7 +2,7 @@ CC = clang
 CFLAGS = -g
 #DEBUG = -DBINARYDEBUG
 
-SRCS = linkedlist.c main.c talloc.c tokenizer.c parser.c interpreter.c
+SRCS = lib/linkedlist.o main.c lib/talloc.o lib/tokenizer.o lib/parser.o interpreter.c
 HDRS = linkedlist.h value.h talloc.h tokenizer.h parser.h interpreter.h
 OBJS = $(SRCS:.c=.o)
 
