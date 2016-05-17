@@ -1,5 +1,6 @@
 3
 5
 (if #f 7 12)
-(if 6 "Nikita" "Chris")
-(if #f "Apple" 5)
+
+(let ((x 5)) x)
+(if #t x y)

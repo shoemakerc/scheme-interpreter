@@ -19,7 +19,7 @@
 
 void evaluationError() {
     printf("evaluation error\n");
-    texit(1);
+    //texit(1);
 }
 
 void interpret(Value *tree){
@@ -34,6 +34,8 @@ void interpret(Value *tree){
         } else if (answer->type == DOUBLE_TYPE) {
             printf("%f\n", answer->d);
         } else if (answer->type == STR_TYPE) {
+            printf("%s\n", answer->s);
+        } else if (answer->type == SYMBOL_TYPE) {
             printf("%s\n", answer->s);
         }
         tree = cdr(tree);
@@ -71,11 +73,20 @@ Value *evalIf(Value *args, Frame *frames) {
     }
 }
 
-//Value *evalLet(Value *args, Frame *frames) {
-//    Frame *newFrame = talloc(sizeof(Frame));
-//    newFrame->parent = frames;
-//    newFrame->bindings = makeNull();
-//}
+Value *evalLet(Value *args, Frame *frames) {
+    //printf("test4\n");
+    Frame *newFrame = talloc(sizeof(Frame));
+    newFrame->parent = frames;
+    newFrame->bindings = makeNull();
+    Value *vars = car(args);
+    while (vars->type != NULL_TYPE){
+        Value *vali = eval(car(cdr(car(vars))), frames);
+        newFrame->bindings = cons(vali, newFrame->bindings);
+        vars = cdr(vars);
+    }
+    Value *result = eval(car(cdr(args)), newFrame);
+    return result;
+}
 
 
 Value *eval(Value *tree, Frame *frame) {
@@ -84,7 +95,7 @@ Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
     Value *args;
-    switch (tree->type)  {
+    switch (tree->type) {
         case INT_TYPE:
             return tree;
             break;
@@ -97,18 +108,18 @@ Value *eval(Value *tree, Frame *frame) {
         case CONS_TYPE:
             first = car(tree);
             args = cdr(tree);
-            
             // Sanity and error checking on first...
             if (!strcmp(first->s,"if")) 
             {
                 result = evalIf(args,frame);
                 return result;
             } 
-//            else if (!strcmp(first->s,"let")) {
-//                frames = newFrameLet(args,frame);
-//                result = eval(car(cdr(args)), frame);
-//                return result;
-//              }
+            else if (!strcmp(first->s,"let")) {
+                //frame = evalLet(args,frame);
+                result = evalLet(args, frame);
+                //result = eval(car(cdr(args)), frame);
+                return result;
+              }
             else {
                 evaluationError();
             }
@@ -120,6 +131,7 @@ Value *eval(Value *tree, Frame *frame) {
             return tree;
             break;
     }
+    return 0;
 }
 
 
