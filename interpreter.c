@@ -19,11 +19,11 @@
 
 void evaluationError() {
     printf("evaluation error\n");
-    //texit(1);
+    texit(1);
 }
 
 void interpret(Value *tree){
-    //printf("test3");
+    printf("interpreting\n");
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
@@ -35,6 +35,8 @@ void interpret(Value *tree){
             printf("%f\n", answer->d);
         } else if (answer->type == STR_TYPE) {
             printf("%s\n", answer->s);
+        } else if (answer->type == BOOL_TYPE) {
+            printf("%d\n", answer->i);
         } else if (answer->type == SYMBOL_TYPE) {
             printf("%s\n", answer->s);
         }
@@ -43,9 +45,18 @@ void interpret(Value *tree){
 }
 
 Value *lookUpSymbol(Value *tree, Frame *frames) {
-    //Value *temp;
-    while (frames->bindings->type != 0) {
-        
+    Value *temp;
+    while (frames->bindings->type != NULL_TYPE) {
+        if (!strcmp(car(car(frames->bindings))->s, tree->s)) {
+            temp = cdr(car(frames->bindings));
+            return temp;
+        }
+        frames->bindings = cdr(frames->bindings);
+    }
+    if (frames->parent != NULL) {
+        return lookUpSymbol(tree, frames->parent);
+    } else {
+        evaluationError();
     }
 }
 
@@ -80,35 +91,23 @@ Value *evalLet(Value *args, Frame *frames) {
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = frames;
     newFrame->bindings = makeNull();
-    Value *vars = car(args);
-    while (vars->type != NULL_TYPE){
-        Value *vali = eval(car(cdr(car(vars))), frames);
-        Value *binding;
+    Value *bindingsList = car(args);
+    if (bindingsList->type == NULL_TYPE) {
+        evaluationError();
+    }
+    while (bindingsList->type != NULL_TYPE) {
+        Value *var = car(car(bindingsList));
+        Value *val = eval(car(cdr(car(bindingsList))), frames);
+        Value *binding = talloc(sizeof(Value));
         binding->type = CONS_TYPE;
-        binding->c.car = car(car(vars));
-        binding->c.cdr = vali;
+        binding->c.car = var;
+        binding->c.cdr = val;
         newFrame->bindings = cons(binding, newFrame->bindings);
-        vars = cdr(vars);
+        bindingsList = cdr(bindingsList);
     }
     Value *result = eval(car(cdr(args)), newFrame);
     return result;
 }
-
-//Value *evalLet(Value *args, Frame *frames) {
-//    printf("test4\n");
-//    Frame *newFrame = talloc(sizeof(Frame));
-//    newFrame->parent = frames;
-//    newFrame->bindings = makeNull();
-//    Value *vars = car(args);
-//    while (vars->type != NULL_TYPE){
-//        Value *vali = eval(car(cdr(car(vars))), frames);
-//        newFrame->bindings = cons(vali, newFrame->bindings);
-//        vars = cdr(vars);
-//    }
-//    Value *result = eval(car(cdr(args)), newFrame);
-//    return result;
-//}
-
 
 Value *eval(Value *tree, Frame *frame) {
     //printf("test1");
@@ -132,13 +131,11 @@ Value *eval(Value *tree, Frame *frame) {
             // Sanity and error checking on first...
             if (!strcmp(first->s,"if")) 
             {
-                result = evalIf(args,frame);
+                result = evalIf(args, frame);
                 return result;
             } 
             else if (!strcmp(first->s,"let")) {
-                //frame = evalLet(args,frame);
                 result = evalLet(args, frame);
-                //result = eval(car(cdr(args)), frame);
                 return result;
               }
             else {
