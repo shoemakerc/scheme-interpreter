@@ -42,10 +42,12 @@ void interpret(Value *tree){
     }
 }
 
-//Value *lookUpSymbol(Value *tree, Frame *frames) {
-//    Value *temp;
-//    while (frames)
-//}
+Value *lookUpSymbol(Value *tree, Frame *frames) {
+    //Value *temp;
+    while (frames->bindings->type != 0) {
+        
+    }
+}
 
                    
 Value *evalIf(Value *args, Frame *frames) {
@@ -74,19 +76,38 @@ Value *evalIf(Value *args, Frame *frames) {
 }
 
 Value *evalLet(Value *args, Frame *frames) {
-    //printf("test4\n");
+    printf("test4\n");
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = frames;
     newFrame->bindings = makeNull();
     Value *vars = car(args);
     while (vars->type != NULL_TYPE){
         Value *vali = eval(car(cdr(car(vars))), frames);
-        newFrame->bindings = cons(vali, newFrame->bindings);
+        Value *binding;
+        binding->type = CONS_TYPE;
+        binding->c.car = car(car(vars));
+        binding->c.cdr = vali;
+        newFrame->bindings = cons(binding, newFrame->bindings);
         vars = cdr(vars);
     }
     Value *result = eval(car(cdr(args)), newFrame);
     return result;
 }
+
+//Value *evalLet(Value *args, Frame *frames) {
+//    printf("test4\n");
+//    Frame *newFrame = talloc(sizeof(Frame));
+//    newFrame->parent = frames;
+//    newFrame->bindings = makeNull();
+//    Value *vars = car(args);
+//    while (vars->type != NULL_TYPE){
+//        Value *vali = eval(car(cdr(car(vars))), frames);
+//        newFrame->bindings = cons(vali, newFrame->bindings);
+//        vars = cdr(vars);
+//    }
+//    Value *result = eval(car(cdr(args)), newFrame);
+//    return result;
+//}
 
 
 Value *eval(Value *tree, Frame *frame) {
@@ -126,6 +147,10 @@ Value *eval(Value *tree, Frame *frame) {
             break;
         case BOOL_TYPE:
             return tree;
+            break;
+        case SYMBOL_TYPE:
+            result = lookUpSymbol(tree, frame);
+            return result;
             break;
         default:
             return tree;
