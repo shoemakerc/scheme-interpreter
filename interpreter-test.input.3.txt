@@ -1,0 +1,7 @@
+"oh"
+"my"
+"god"
+"PL"
+"is"
+(let ((x 2) (y "kinda")) (if #t x y))
+"cool!"

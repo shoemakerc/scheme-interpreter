@@ -1,6 +1,6 @@
 3
 5
 (if #f 7 12)
-
-(let ((x 5)) x)
-(if #t x y)
+(let ((x 5) (y "hello")) (if #f x y))
+(let ((x "hello")) (let ((y "goodbye")) (if #t x y)))
+(let ((x #f)) (if x 3 5))

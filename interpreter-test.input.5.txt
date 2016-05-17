@@ -1,0 +1,3 @@
+(let ((x "hello")) (let ((y "goodbye")) (if #t x y)))
+"the symbol below is not bound, therefore there will be an evaluation error"
+eatit

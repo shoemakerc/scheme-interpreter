@@ -1,3 +1,10 @@
+/*
+Nikita Fomichev and Chris Shoemaker (eager_bird)
+CS 251
+Interpreter, if/let
+Starting interpreter functions for the evaluation of let and if statements.
+*/
+
 #include "value.h"
 #include "talloc.h"
 #include "tokenizer.h"
@@ -61,7 +68,6 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
 
                    
 Value *evalIf(Value *args, Frame *frames) {
-    //printf("test2");
     if (car(args)->type != BOOL_TYPE) {
         if (car(args)->type == SYMBOL_TYPE) {
             Value *temp = eval(car(args), frames);
@@ -134,8 +140,6 @@ Value *evalLet(Value *args, Frame *frames) {
 }
 
 Value *eval(Value *tree, Frame *frame) {
-    //printf("test1");
-    //Value *frames;
     Value *result;
     Value *first;
     Value *args;
@@ -152,7 +156,6 @@ Value *eval(Value *tree, Frame *frame) {
         case CONS_TYPE:
             first = car(tree);
             args = cdr(tree);
-            // Sanity and error checking on first...
             if (!strcmp(first->s,"if")) 
             {
                 result = evalIf(args, frame);
