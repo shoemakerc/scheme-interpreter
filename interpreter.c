@@ -23,7 +23,6 @@ void evaluationError() {
 }
 
 void interpret(Value *tree){
-    printf("interpreting\n");
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
@@ -64,6 +63,32 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
 Value *evalIf(Value *args, Frame *frames) {
     //printf("test2");
     if (car(args)->type != BOOL_TYPE) {
+        if (car(args)->type == SYMBOL_TYPE) {
+            Value *temp = eval(car(args), frames);
+            if (temp->type == BOOL_TYPE) {
+                if (temp->i == 1){
+                    if (cdr(args)->type == NULL_TYPE) {
+                        evaluationError();
+                    }
+                    if (cdr(cdr(args))->type == NULL_TYPE) {
+                        evaluationError();
+                    }
+                    return eval(car(cdr(args)), frames);
+                }
+                else {
+                    if (cdr(args)->type == NULL_TYPE) {
+                        evaluationError();
+                    }
+                    if (cdr(cdr(args))->type == NULL_TYPE) {
+                        evaluationError();
+                    }
+                    return eval(car(cdr(cdr(args))), frames);
+                }
+                
+            } else {
+                evaluationError();
+            }
+        }
         evaluationError();
     }
     if (args->c.car->i == 1){
@@ -87,7 +112,6 @@ Value *evalIf(Value *args, Frame *frames) {
 }
 
 Value *evalLet(Value *args, Frame *frames) {
-    printf("test4\n");
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = frames;
     newFrame->bindings = makeNull();
