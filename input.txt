@@ -4,3 +4,7 @@
 (let ((x 5) (y "hello")) (if #f x y))
 (let ((x "hello")) (let ((y "goodbye")) (if #t x y)))
 (let ((x #f)) (if x 3 5))
+(quote a)
+(quote (a b c))
+(quote (a b (quote (c d e))))
+(quote (+ 3 5))

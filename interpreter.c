@@ -29,23 +29,34 @@ void evaluationError() {
     texit(1);
 }
 
+void printEval(Value *answer) {
+    if (answer->type == INT_TYPE) {
+            printf("%d ", answer->i);
+        } else if (answer->type == DOUBLE_TYPE) {
+            printf("%f ", answer->d);
+        } else if (answer->type == STR_TYPE) {
+            printf("%s ", answer->s);
+        } else if (answer->type == CONS_TYPE) {
+            printf("(");
+            while (answer->type != NULL_TYPE) {
+                printEval(car(answer));
+                answer = cdr(answer);   
+            }
+            printf("\b) ");
+        } else if (answer->type == BOOL_TYPE) {
+            printf("%d ", answer->i);
+        } else if (answer->type == SYMBOL_TYPE) {
+            printf("%s ", answer->s);
+        }
+}
 void interpret(Value *tree){
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
     while (tree->type != NULL_TYPE) {
         answer = eval(car(tree), globalFrame);
-        if (answer->type == INT_TYPE) {
-            printf("%d\n", answer->i);
-        } else if (answer->type == DOUBLE_TYPE) {
-            printf("%f\n", answer->d);
-        } else if (answer->type == STR_TYPE) {
-            printf("%s\n", answer->s);
-        } else if (answer->type == BOOL_TYPE) {
-            printf("%d\n", answer->i);
-        } else if (answer->type == SYMBOL_TYPE) {
-            printf("%s\n", answer->s);
-        }
+        printEval(answer);
+        printf("\n");
         tree = cdr(tree);
     }
 }
@@ -139,6 +150,10 @@ Value *evalLet(Value *args, Frame *frames) {
     return result;
 }
 
+Value *evalQuote(Value *args, Frame *frames)  {
+    return car(args);
+}
+
 Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
@@ -165,6 +180,9 @@ Value *eval(Value *tree, Frame *frame) {
                 result = evalLet(args, frame);
                 return result;
               }
+            else if (!strcmp(first->s, "quote")) {
+                return car(args);
+            }
             else {
                 evaluationError();
             }

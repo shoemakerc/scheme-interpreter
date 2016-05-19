@@ -1,0 +1,3 @@
+(quote (a b c))
+(quote (a b (quote (c d e))))
+(if #f a (quote (3 1)))

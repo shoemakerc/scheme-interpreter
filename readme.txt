@@ -1,0 +1,1 @@
+Testing the quote portion of the interpreter project should be tested with the file pairs interpreter-test.input.6.txt/interpreter-test.output.6.txt and interpreter-test.input.7.txt/interpreter-test.output.7.txt.
