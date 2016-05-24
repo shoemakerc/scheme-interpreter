@@ -29,7 +29,7 @@ void evaluationError() {
     texit(1);
 }
 
-void printEval(Value *answer) {
+void printInterpTree(Value *answer) {
     if (answer->type == INT_TYPE) {
             printf("%d ", answer->i);
         } else if (answer->type == DOUBLE_TYPE) {
@@ -39,7 +39,7 @@ void printEval(Value *answer) {
         } else if (answer->type == CONS_TYPE) {
             printf("(");
             while (answer->type != NULL_TYPE) {
-                printEval(car(answer));
+                printInterpTree(car(answer));
                 answer = cdr(answer);   
             }
             printf("\b) ");
@@ -47,15 +47,16 @@ void printEval(Value *answer) {
             printf("%d ", answer->i);
         } else if (answer->type == SYMBOL_TYPE) {
             printf("%s ", answer->s);
-        }
+        } 
 }
+
 void interpret(Value *tree){
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
     while (tree->type != NULL_TYPE) {
         answer = eval(car(tree), globalFrame);
-        printEval(answer);
+        printInterpTree(answer);
         printf("\n");
         tree = cdr(tree);
     }
