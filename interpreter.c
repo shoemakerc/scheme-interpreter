@@ -179,6 +179,28 @@ Value *evalLambda(Value *args, Frame *frames) {
     return result;
 }
 
+Value *apply(Value *function, Value *args) {
+    Frame *newFrame = talloc(sizeof(Frame));
+    newFrame->parent = function->cl.frame;
+    newFrame->bindings = makeNull();
+    Value *formalParams = function->cl.paramNames;
+    Value *actualParams = args;
+    while (actualParams->type != NULL_TYPE) {
+        if (formalParams->type == NULL_TYPE) {
+            evaluationError();
+        }
+        Value *binding = talloc(sizeof(Value));
+        binding->type = CONS_TYPE;
+        binding->c.car = car(formalParams);
+        binding->c.cdr = car(actualParams);
+        newFrame->bindings = cons(binding, newFrame->bindings);
+        formalParams = cdr(formalParams);
+        actualParams = cdr(actualParams);
+    }
+    Value *result = eval(function->cl.functionCode, newFrame);
+    return result;
+}
+
 Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
@@ -216,7 +238,9 @@ Value *eval(Value *tree, Frame *frame) {
                 return result;
             }
             else {
-                evaluationError();
+                Value *evaledOperator = eval(first, frame);
+                Value *evaledArgs = eval(args, frame);
+                return apply(evaledOperator, evaledArgs);
             }
             break;
         case BOOL_TYPE:
