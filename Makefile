@@ -1,3 +1,4 @@
+
 CC = clang
 CFLAGS = -g
 #DEBUG = -DBINARYDEBUG
@@ -15,4 +16,3 @@ interpreter: $(OBJS)
 clean:
 	rm *.o
 	rm interpreter
-

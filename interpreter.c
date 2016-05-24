@@ -154,6 +154,19 @@ Value *evalQuote(Value *args, Frame *frames)  {
     return car(args);
 }
 
+Value *evalDefine(Value *args, Frame *frames) {
+    Value *var = car(args);
+    Value *expr = eval(car(cdr(args)), frames);
+    Value *binding = talloc(sizeof(Value));
+    binding->type = CONS_TYPE;
+    binding->c.car = var;
+    binding->c.cdr = expr;
+    frames->bindings = cons(binding, frames->bindings);
+    Value *result = talloc(sizeof(Value));
+    result->type = VOID_TYPE;
+    return result;
+}
+
 Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
@@ -181,7 +194,11 @@ Value *eval(Value *tree, Frame *frame) {
                 return result;
               }
             else if (!strcmp(first->s, "quote")) {
-                return car(args);
+                result = evalQuote(args, frame);
+                return result;
+            } else if (!strcmp(first->s, "define")) {
+                result = evalDefine(args, frame);
+                return result;
             }
             else {
                 evaluationError();
