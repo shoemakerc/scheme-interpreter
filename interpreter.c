@@ -169,7 +169,14 @@ Value *evalDefine(Value *args, Frame *frames) {
 }
 
 Value *evalLambda(Value *args, Frame *frames) {
-    
+    Value *params = car(args);
+    Value *body = car(cdr(args));
+    Value *result = talloc(sizeof(Value));
+    result->type = CLOSURE_TYPE;
+    result->cl.paramNames = params;
+    result->cl.functionCode = body;
+    result->cl.frame = frames;
+    return result;
 }
 
 Value *eval(Value *tree, Frame *frame) {
