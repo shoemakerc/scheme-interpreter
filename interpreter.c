@@ -168,6 +168,10 @@ Value *evalDefine(Value *args, Frame *frames) {
     return result;
 }
 
+Value *evalLambda(Value *args, Frame *frames) {
+    
+}
+
 Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
@@ -199,6 +203,9 @@ Value *eval(Value *tree, Frame *frame) {
                 return result;
             } else if (!strcmp(first->s, "define")) {
                 result = evalDefine(args, frame);
+                return result;
+            } else if (!strcmp(first->s, "lambda")) {
+                result = evalLambda(args, frame);
                 return result;
             }
             else {
