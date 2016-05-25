@@ -63,6 +63,8 @@ void interpret(Value *tree){
 }
 
 Value *lookUpSymbol(Value *tree, Frame *frames) {
+    printf("looking up symbol: %s\n", tree->s);
+    
     Value *temp;
     while (frames->bindings->type != NULL_TYPE) {
         if (!strcmp(car(car(frames->bindings))->s, tree->s)) {
@@ -74,6 +76,7 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
     if (frames->parent != NULL) {
         return lookUpSymbol(tree, frames->parent);
     } else {
+        printf("Error 1");
         evaluationError();
     }
 }
@@ -86,43 +89,53 @@ Value *evalIf(Value *args, Frame *frames) {
             if (temp->type == BOOL_TYPE) {
                 if (temp->i == 1){
                     if (cdr(args)->type == NULL_TYPE) {
+                        printf("Error 2");
                         evaluationError();
                     }
                     if (cdr(cdr(args))->type == NULL_TYPE) {
+                        printf("Error 3");
                         evaluationError();
                     }
                     return eval(car(cdr(args)), frames);
                 }
                 else {
                     if (cdr(args)->type == NULL_TYPE) {
+                        printf("Error 4");
                         evaluationError();
                     }
                     if (cdr(cdr(args))->type == NULL_TYPE) {
+                        printf("Error 5");
                         evaluationError();
                     }
                     return eval(car(cdr(cdr(args))), frames);
                 }
                 
             } else {
+                printf("Error 6");
                 evaluationError();
             }
         }
+        printf("Error 7");
         evaluationError();
     }
     if (args->c.car->i == 1){
         if (cdr(args)->type == NULL_TYPE) {
+            printf("Error 8");
             evaluationError();
         }
         if (cdr(cdr(args))->type == NULL_TYPE) {
+            printf("Error 9");
             evaluationError();
         }
         return eval(car(cdr(args)), frames);
     }
     else {
         if (cdr(args)->type == NULL_TYPE) {
+            printf("Error 10");
             evaluationError();
         }
         if (cdr(cdr(args))->type == NULL_TYPE) {
+            printf("Error 11");
             evaluationError();
         }
         return eval(car(cdr(cdr(args))), frames);
@@ -239,7 +252,13 @@ Value *eval(Value *tree, Frame *frame) {
             }
             else {
                 Value *evaledOperator = eval(first, frame);
-                Value *evaledArgs = eval(args, frame);
+                printf("\n");
+                Value *evaledArgs = makeNull();
+                while (args->type != NULL_TYPE) {
+                    Value *evaled = eval(car(args), frame);
+                    evaledArgs = cons(evaled, evaledArgs);
+                    args = cdr(args);
+                }
                 return apply(evaledOperator, evaledArgs);
             }
             break;
