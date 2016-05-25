@@ -1,2 +1,5 @@
-(define e "Chris")
-e
+(define not
+  (lambda (bool)
+    (if bool #f #t)))
+    
+(not #t)
