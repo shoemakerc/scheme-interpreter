@@ -73,8 +73,8 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
         currentFrame->bindings = cdr(currentFrame->bindings);
     }
     if (currentFrame->parent != NULL) {
-        Value *next = lookUpSymbol(tree, currentFrame->parent);
-        return next;
+        Value *nextFrame = lookUpSymbol(tree, currentFrame->parent);
+        return nextFrame;
     } else {
         evaluationError();
     }
