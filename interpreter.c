@@ -63,18 +63,18 @@ void interpret(Value *tree){
 }
 
 Value *lookUpSymbol(Value *tree, Frame *frames) {
-    Frame *search = frames;
+    Frame *currentFrame = frames;
     Value *temp;
-    while (search->bindings->type != NULL_TYPE) {
-        if (!strcmp(car(car(search->bindings))->s, tree->s)) {
-            temp = cdr(car(search->bindings));
+    while (currentFrame->bindings->type != NULL_TYPE) {
+        if (!strcmp(car(car(currentFrame->bindings))->s, tree->s)) {
+            temp = cdr(car(currentFrame->bindings));
             return temp;
         }
-        search->bindings = cdr(search->bindings);
+        currentFrame->bindings = cdr(currentFrame->bindings);
     }
-    if (search->parent != NULL) {
-        Value *altern = lookUpSymbol(tree, search->parent);
-        return altern;
+    if (currentFrame->parent != NULL) {
+        Value *next = lookUpSymbol(tree, currentFrame->parent);
+        return next;
     } else {
         evaluationError();
     }
