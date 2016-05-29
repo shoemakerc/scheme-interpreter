@@ -44,7 +44,11 @@ void printInterpTree(Value *answer) {
             }
             printf("\b) ");
         } else if (answer->type == BOOL_TYPE) {
-            printf("%d ", answer->i);
+            if (answer->i == 1) {
+                printf("#t ");
+            } else {
+                printf("#f ");
+            }
         } else if (answer->type == SYMBOL_TYPE) {
             printf("%s ", answer->s);
         } 
@@ -64,21 +68,39 @@ void interpret(Value *tree){
 
 Value *lookUpSymbol(Value *tree, Frame *frames) {
     Frame *currentFrame = frames;
-    Value *temp;
-    while (currentFrame->bindings->type != NULL_TYPE) {
-        if (!strcmp(car(car(currentFrame->bindings))->s, tree->s)) {
-            temp = cdr(car(currentFrame->bindings));
-            return temp;
+    Value *currentBindings;
+    Value *exprValue = tree;
+    while (currentFrame != NULL) {
+        currentBindings = currentFrame->bindings;
+        while(currentBindings->type != NULL_TYPE) {
+            if (!strcmp(exprValue->s, car(car(currentBindings))->s)) {
+                exprValue = cdr(car(currentBindings));
+                return exprValue;
+            }
+            currentBindings = cdr(currentBindings);
         }
-        currentFrame->bindings = cdr(currentFrame->bindings);
+        currentFrame = currentFrame->parent;
     }
-    if (currentFrame->parent != NULL) {
-        Value *nextFrame = lookUpSymbol(tree, currentFrame->parent);
-        return nextFrame;
-    } else {
-        evaluationError();
-    }
+    evaluationError();
 }
+
+//Value *lookUpSymbol(Value *tree, Frame *frames) {
+//    Frame *currentFrame = frames;
+//    Value *temp;
+//    while (currentFrame->bindings->type != NULL_TYPE) {
+//        if (!strcmp(car(car(currentFrame->bindings))->s, tree->s)) {
+//            temp = cdr(car(currentFrame->bindings));
+//            return temp;
+//        }
+//        currentFrame->bindings = cdr(currentFrame->bindings);
+//    }
+//    if (currentFrame->parent != NULL) {
+//        Value *nextFrame = lookUpSymbol(tree, currentFrame->parent);
+//        return nextFrame;
+//    } else {
+//        evaluationError();
+//    }
+//}
                    
 Value *evalIf(Value *args, Frame *frames) {
     if (car(args)->type != BOOL_TYPE) {
@@ -174,31 +196,35 @@ Value *evalLambda(Value *args, Frame *frames) {
     Value *body = car(cdr(args));
     Value *result = talloc(sizeof(Value));
     result->type = CLOSURE_TYPE;
-    result->cl.paramNames = params;
+    result->cl.paramNames = makeNull();
+    while (params->type == CONS_TYPE) {
+        result->cl.paramNames = cons(car(params), result->cl.paramNames);
+        params = cdr(params);
+    }
     result->cl.functionCode = body;
     result->cl.frame = frames;
-    return result;
+    return result   ;
 }
 
 Value *apply(Value *function, Value *args) {
+    if (length(args) != length(function->cl.paramNames)) {
+        evaluationError();
+    }
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = function->cl.frame;
     newFrame->bindings = makeNull();
+    Value *code = function->cl.functionCode;
     Value *formalParams = function->cl.paramNames;
-    Value *actualParams = args;
-    while (actualParams->type != NULL_TYPE) {
-        if (formalParams->type == NULL_TYPE) {
-            evaluationError();
-        }
+    while (formalParams->type == CONS_TYPE) {
         Value *binding = talloc(sizeof(Value));
         binding->type = CONS_TYPE;
         binding->c.car = car(formalParams);
-        binding->c.cdr = eval(car(actualParams), function->cl.frame);
+        binding->c.cdr = car(args);
         newFrame->bindings = cons(binding, newFrame->bindings);
         formalParams = cdr(formalParams);
-        actualParams = cdr(actualParams);
+        args = cdr(args);
     }
-    Value *result = eval(function->cl.functionCode, newFrame);
+    Value *result = eval(code, newFrame);
     return result;
 }
 
@@ -241,12 +267,11 @@ Value *eval(Value *tree, Frame *frame) {
             else {
                 Value *evaledOperator = eval(first, frame);
                 Value *evaledArgs = makeNull();
-                while (args->type != NULL_TYPE) {
+                while (args->type == CONS_TYPE) {
                     Value *evaled = eval(car(args), frame);
                     evaledArgs = cons(evaled, evaledArgs);
                     args = cdr(args);
                 }
-                evaledArgs = reverse(evaledArgs);
                 return apply(evaledOperator, evaledArgs);
             }
             break;
