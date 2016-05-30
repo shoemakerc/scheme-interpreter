@@ -54,16 +54,81 @@ void printInterpTree(Value *answer) {
         } 
 }
 
+void bind(char *name, Value *(*function)(struct Value *), Frame *frame) {
+    Value *funcValue = talloc(sizeof(Value));
+    funcValue->type = PRIMITIVE_TYPE;
+    funcValue->pf = function;
+    Value *primValue = talloc(sizeof(Value));
+    primValue->type = SYMBOL_TYPE;
+    primValue->s = name;
+    Value *binding = talloc(sizeof(Value));
+    binding->type = CONS_TYPE;
+    binding->c.car = primValue;
+    binding->c.cdr = funcValue;
+    frame->bindings = cons(binding, frame->bindings);
+}
+
+// Primitive + returns sum of args
+Value *primitiveAdd(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = DOUBLE_TYPE;
+    // If no arguments given, return 0
+    if (args->type == NULL_TYPE) {
+        result->d = 0.0;
+        return result;
+    }
+    double sum = 0.0;
+    while (args->type != NULL_TYPE) {
+        if (car(args)->type == INT_TYPE) {
+            sum += car(args)->i;
+        } else if (car(args)->type == DOUBLE_TYPE) {
+            sum += car(args)->d;
+        }
+        args = cdr(args);
+    }
+    result->d = sum;
+    return result;
+}
+
+// Primitive null? checks if args is null
+Value *primitiveNull(Value *args) {
+    // Error checking: if more than one argument, throw error
+    if (cdr(args)->type != NULL_TYPE) {
+        evaluationError();
+    }
+    Value *result = talloc(sizeof(Value));
+    result->type = BOOL_TYPE;
+    int val = 0;
+    if (car(args)->type == NULL_TYPE) {
+        val = 1;
+    }
+    result->i = val;
+    return result;
+}
+
+//Value *primitive(Value *args){
+//    Value result;
+//    printInterpTree(args);
+//    return 0;
+//}
+
 void interpret(Value *tree){
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
     globalFrame->bindings = makeNull();
+    globalFrame->parent = NULL;
+    bind("+", primitiveAdd, globalFrame);
+    bind("null?", primitiveNull, globalFrame);
+    // bind car
+    // bind cdr
+    // bind cons
     while (tree->type != NULL_TYPE) {
         answer = eval(car(tree), globalFrame);
         printInterpTree(answer);
         printf("\n");
         tree = cdr(tree);
     }
+
 }
 
 Value *lookUpSymbol(Value *tree, Frame *frames) {
@@ -83,24 +148,6 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
     }
     evaluationError();
 }
-
-//Value *lookUpSymbol(Value *tree, Frame *frames) {
-//    Frame *currentFrame = frames;
-//    Value *temp;
-//    while (currentFrame->bindings->type != NULL_TYPE) {
-//        if (!strcmp(car(car(currentFrame->bindings))->s, tree->s)) {
-//            temp = cdr(car(currentFrame->bindings));
-//            return temp;
-//        }
-//        currentFrame->bindings = cdr(currentFrame->bindings);
-//    }
-//    if (currentFrame->parent != NULL) {
-//        Value *nextFrame = lookUpSymbol(tree, currentFrame->parent);
-//        return nextFrame;
-//    } else {
-//        evaluationError();
-//    }
-//}
                    
 Value *evalIf(Value *args, Frame *frames) {
     if (car(args)->type != BOOL_TYPE) {
@@ -203,29 +250,35 @@ Value *evalLambda(Value *args, Frame *frames) {
     }
     result->cl.functionCode = body;
     result->cl.frame = frames;
-    return result   ;
+    return result;
 }
 
 Value *apply(Value *function, Value *args) {
-    if (length(args) != length(function->cl.paramNames)) {
-        evaluationError();
+    if (function->type == CLOSURE_TYPE){
+        if (length(args) != length(function->cl.paramNames)) {
+            evaluationError();
+        }
+        Frame *newFrame = talloc(sizeof(Frame));
+        newFrame->parent = function->cl.frame;
+        newFrame->bindings = makeNull();
+        Value *code = function->cl.functionCode;
+        Value *formalParams = function->cl.paramNames;
+        while (formalParams->type == CONS_TYPE) {
+            Value *binding = talloc(sizeof(Value));
+            binding->type = CONS_TYPE;
+            binding->c.car = car(formalParams);
+            binding->c.cdr = car(args);
+            newFrame->bindings = cons(binding, newFrame->bindings);
+            formalParams = cdr(formalParams);
+            args = cdr(args);
+        }
+        Value *result = eval(code, newFrame);
+        return result;
+    } else if (function->type == PRIMITIVE_TYPE) {
+        Value *result = function->pf(args);
+        return result;
     }
-    Frame *newFrame = talloc(sizeof(Frame));
-    newFrame->parent = function->cl.frame;
-    newFrame->bindings = makeNull();
-    Value *code = function->cl.functionCode;
-    Value *formalParams = function->cl.paramNames;
-    while (formalParams->type == CONS_TYPE) {
-        Value *binding = talloc(sizeof(Value));
-        binding->type = CONS_TYPE;
-        binding->c.car = car(formalParams);
-        binding->c.cdr = car(args);
-        newFrame->bindings = cons(binding, newFrame->bindings);
-        formalParams = cdr(formalParams);
-        args = cdr(args);
-    }
-    Value *result = eval(code, newFrame);
-    return result;
+    evaluationError();
 }
 
 Value *eval(Value *tree, Frame *frame) {
@@ -286,7 +339,7 @@ Value *eval(Value *tree, Frame *frame) {
             return tree;
             break;
     }
-    return 0;
+    evaluationError();
 }
 
 

@@ -22,3 +22,5 @@
 (testit #t #f #t)
 (testit #f #f #t)
 
+(+ 3 5)
+(null? 3 3)
