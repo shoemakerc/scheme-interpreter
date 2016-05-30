@@ -107,7 +107,7 @@ Value *primitiveNull(Value *args) {
 Other primitive functions
 */
 
-// "Main" interpretation function for parsed Scheme code
+// Main interpretation function for parsed Scheme code
 void interpret(Value *tree){
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
@@ -119,6 +119,7 @@ void interpret(Value *tree){
     // TODO: bind cdr
     // TODO: bind cons
     while (tree->type != NULL_TYPE) {
+        // Evaluate every element in the parse tree
         answer = eval(car(tree), globalFrame);
         printInterpTree(answer);
         printf("\n");
@@ -144,7 +145,8 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
     }
     evaluationError();
 }
-                   
+
+// Function for evaluating 'if' procedures in Scheme
 Value *evalIf(Value *args, Frame *frames) {
     if (car(args)->type != BOOL_TYPE) {
         if (car(args)->type == SYMBOL_TYPE) {
@@ -195,6 +197,7 @@ Value *evalIf(Value *args, Frame *frames) {
     }
 }
 
+// Function for evaluating 'let' procedures in Scheme
 Value *evalLet(Value *args, Frame *frames) {
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = frames;
@@ -217,10 +220,12 @@ Value *evalLet(Value *args, Frame *frames) {
     return result;
 }
 
+// Function for evaluating 'quote' procedures in Scheme
 Value *evalQuote(Value *args, Frame *frames)  {
     return car(args);
 }
 
+// Function for evaluating 'define' procedures in Scheme
 Value *evalDefine(Value *args, Frame *frames) {
     Value *var = car(args);
     Value *expr = eval(car(cdr(args)), frames);
@@ -234,6 +239,7 @@ Value *evalDefine(Value *args, Frame *frames) {
     return result;
 }
 
+// Function for evaluating Scheme lambda functions
 Value *evalLambda(Value *args, Frame *frames) {
     Value *params = car(args);
     Value *body = car(cdr(args));
