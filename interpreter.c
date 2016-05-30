@@ -104,7 +104,7 @@ Value *primitiveNull(Value *args) {
 }
 
 /*
-Other primitive functions
+Other primitive functions go here
 */
 
 // Main interpretation function for parsed Scheme code
