@@ -1,8 +1,8 @@
 /*
 Nikita Fomichev and Chris Shoemaker (eager_bird)
 CS 251
-Interpreter, if/let
-Starting interpreter functions for the evaluation of let and if statements.
+Interpreter project
+Functions for the interpreting of (relatively) simple Scheme programs
 */
 
 #include "value.h"
@@ -18,17 +18,13 @@ Starting interpreter functions for the evaluation of let and if statements.
 #include <stdlib.h>
 #include <string.h>
 
-
-// A frame is a linked list of bindings, and a pointer to another frame.  A
-// binding is a variable name (represented as a string), and a pointer to the
-// Value it is bound to. Specifically how you implement the list of bindings is
-// up to you.
-
+// Error function if evaluation goes wrong
 void evaluationError() {
     printf("evaluation error\n");
     texit(1);
 }
 
+// Prints out the interpreted parse tree
 void printInterpTree(Value *answer) {
     if (answer->type == INT_TYPE) {
             printf("%d ", answer->i);
@@ -54,6 +50,7 @@ void printInterpTree(Value *answer) {
         } 
 }
 
+// Binds primitive functions to the global (top) frame
 void bind(char *name, Value *(*function)(struct Value *), Frame *frame) {
     Value *funcValue = talloc(sizeof(Value));
     funcValue->type = PRIMITIVE_TYPE;
@@ -106,12 +103,11 @@ Value *primitiveNull(Value *args) {
     return result;
 }
 
-//Value *primitive(Value *args){
-//    Value result;
-//    printInterpTree(args);
-//    return 0;
-//}
+/*
+Other primitive functions
+*/
 
+// "Main" interpretation function for parsed Scheme code
 void interpret(Value *tree){
     Value *answer;
     Frame *globalFrame = talloc(sizeof(Frame));
@@ -119,9 +115,9 @@ void interpret(Value *tree){
     globalFrame->parent = NULL;
     bind("+", primitiveAdd, globalFrame);
     bind("null?", primitiveNull, globalFrame);
-    // bind car
-    // bind cdr
-    // bind cons
+    // TODO: bind car
+    // TODO: bind cdr
+    // TODO: bind cons
     while (tree->type != NULL_TYPE) {
         answer = eval(car(tree), globalFrame);
         printInterpTree(answer);
