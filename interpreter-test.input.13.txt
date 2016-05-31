@@ -1,0 +1,9 @@
+(define reverse-list
+  (lambda (L)
+    (if (null? L)
+        L
+        (append (reverse-list (cdr L)) (cons (car L) (quote ()))))))
+
+(reverse-list (quote ()))
+(reverse-list (quote (1 2 3 4)))
+(reverse-list (quote (("computer" "science") "is" "awesome")))

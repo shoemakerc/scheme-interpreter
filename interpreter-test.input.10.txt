@@ -1,5 +1,5 @@
-(define square
+(define double
     (lambda (x)
-        (* x x)))
+        (+ x x)))
 
-(square 10)
+(double 10)

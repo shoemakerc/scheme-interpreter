@@ -107,29 +107,50 @@ Value *primitiveNull(Value *args) {
 Other primitive functions go here
 */
 Value *primitiveCar(Value *args) {
+    // If zero arguments are given, throw error
+    if (args->type == NULL_TYPE) {
+        evaluationError();
+    }
+    // If more than one argument is given, throw error
     if (cdr(args)->type != NULL_TYPE){
         evaluationError();
     }
-    if(car(args)->type != CONS_TYPE){
+    if (car(args)->type != CONS_TYPE){
         evaluationError();
     }
     return car(car(args));
 }
 
 Value *primitiveCdr(Value *args) {
+    // If zero arguments are given, throw error
+    if (args->type == NULL_TYPE) {
+        evaluationError();
+    }
+    // If more than one argument is given, throw error
     if (cdr(args)->type != NULL_TYPE){
         evaluationError();
     }
-    if(car(args)->type != CONS_TYPE){
+    if (car(args)->type != CONS_TYPE){
         evaluationError();
     }
     return cdr(car(args));
 }
 
-Value *primitiveCons(Value *args){
-    args->c.car = car(args);
-    cdr(args)->c.car = car(cdr(args));
-    return cons(car(cdr(args)), car(args));
+Value *primitiveCons(Value *args) {
+    // If zero arguments are given, throw error
+    if (args->type == NULL_TYPE) {
+        evaluationError();
+    }
+    // If only one argument is given, throw error
+    if (cdr(args)->type == NULL_TYPE){
+        evaluationError();
+    }
+    // If more than two arguments given, throw error
+    if (cdr(cdr(args))->type != NULL_TYPE) {
+        evaluationError();
+    }
+    Value *result = cons(car(car(args)), car(cdr(args)));
+    return result;
 }
 
 
@@ -175,7 +196,7 @@ Value *lookUpSymbol(Value *tree, Frame *frames) {
 // Function for evaluating 'if' procedures in Scheme
 Value *evalIf(Value *args, Frame *frames) {
     if (car(args)->type != BOOL_TYPE) {
-        if (car(args)->type == SYMBOL_TYPE) {
+        if (car(args)->type == SYMBOL_TYPE || car(args)->type == CONS_TYPE) {
             Value *temp = eval(car(args), frames);
             if (temp->type == BOOL_TYPE) {
                 if (temp->i == 1){
@@ -353,6 +374,7 @@ Value *eval(Value *tree, Frame *frame) {
                     evaledArgs = cons(evaled, evaledArgs);
                     args = cdr(args);
                 }
+                evaledArgs = reverse(evaledArgs);
                 return apply(evaledOperator, evaledArgs);
             }
             break;
