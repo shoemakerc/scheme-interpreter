@@ -106,6 +106,32 @@ Value *primitiveNull(Value *args) {
 /*
 Other primitive functions go here
 */
+Value *primitiveCar(Value *args) {
+    if (cdr(args)->type != NULL_TYPE){
+        evaluationError();
+    }
+    if(car(args)->type != CONS_TYPE){
+        evaluationError();
+    }
+    return car(car(args));
+}
+
+Value *primitiveCdr(Value *args) {
+    if (cdr(args)->type != NULL_TYPE){
+        evaluationError();
+    }
+    if(car(args)->type != CONS_TYPE){
+        evaluationError();
+    }
+    return cdr(car(args));
+}
+
+Value *primitiveCons(Value *args){
+    args->c.car = car(args);
+    cdr(args)->c.car = car(cdr(args));
+    return cons(car(cdr(args)), car(args));
+}
+
 
 // Main interpretation function for parsed Scheme code
 void interpret(Value *tree){
@@ -115,9 +141,9 @@ void interpret(Value *tree){
     globalFrame->parent = NULL;
     bind("+", primitiveAdd, globalFrame);
     bind("null?", primitiveNull, globalFrame);
-    // TODO: bind car
-    // TODO: bind cdr
-    // TODO: bind cons
+    bind("car", primitiveCar, globalFrame);
+    bind("cdr", primitiveCdr, globalFrame);
+    bind("cons", primitiveCons, globalFrame);
     while (tree->type != NULL_TYPE) {
         // Evaluate every element in the parse tree
         answer = eval(car(tree), globalFrame);

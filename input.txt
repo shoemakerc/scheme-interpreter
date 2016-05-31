@@ -23,4 +23,13 @@
 (testit #f #f #t)
 
 (+ 3 5)
-(null? 3 3)
+
+(define lst
+    (quote (a b c)))
+
+(car lst)
+(cdr lst)
+   
+(cons (quote (a)) (quote (b c)))
+
+(cons (quote (1)) (quote(2)))
