@@ -31,7 +31,9 @@ void printInterpTree(Value *answer) {
         } else if (answer->type == DOUBLE_TYPE) {
             printf("%f ", answer->d);
         } else if (answer->type == STR_TYPE) {
+            printf("\"");
             printf("%s ", answer->s);
+            printf("\b\"");
         } else if (answer->type == CONS_TYPE) {
             printf("(");
             while (answer->type != NULL_TYPE) {
@@ -47,7 +49,7 @@ void printInterpTree(Value *answer) {
             }
         } else if (answer->type == SYMBOL_TYPE) {
             printf("%s ", answer->s);
-        } 
+        }
 }
 
 // Binds primitive functions to the global (top) frame
@@ -149,8 +151,8 @@ Value *primitiveCons(Value *args) {
     if (cdr(cdr(args))->type != NULL_TYPE) {
         evaluationError();
     }
-    Value *result = cons(car(car(args)), car(cdr(args)));
-    return result;
+    
+    return cons(car(args), car(cdr(args)));
 }
 
 
@@ -169,7 +171,9 @@ void interpret(Value *tree){
         // Evaluate every element in the parse tree
         answer = eval(car(tree), globalFrame);
         printInterpTree(answer);
-        printf("\n");
+        if (answer->type != VOID_TYPE) {
+            printf("\n");
+        }
         tree = cdr(tree);
     }
 
@@ -369,12 +373,14 @@ Value *eval(Value *tree, Frame *frame) {
             else {
                 Value *evaledOperator = eval(first, frame);
                 Value *evaledArgs = makeNull();
-                while (args->type == CONS_TYPE) {
+                while (args->type != NULL_TYPE) {
                     Value *evaled = eval(car(args), frame);
                     evaledArgs = cons(evaled, evaledArgs);
                     args = cdr(args);
                 }
                 evaledArgs = reverse(evaledArgs);
+                printInterpTree(evaledArgs);
+                printf("\n");
                 return apply(evaledOperator, evaledArgs);
             }
             break;
