@@ -307,7 +307,7 @@ Value *evalLambda(Value *args, Frame *frames) {
 }
 
 Value *apply(Value *function, Value *args) {
-    if (function->type == CLOSURE_TYPE){
+    if (function->type == CLOSURE_TYPE) {
         if (length(args) != length(function->cl.paramNames)) {
             evaluationError();
         }
@@ -331,7 +331,9 @@ Value *apply(Value *function, Value *args) {
         Value *result = function->pf(args);
         return result;
     }
-    evaluationError();
+    else {
+        evaluationError();
+    }
 }
 
 Value *eval(Value *tree, Frame *frame) {
@@ -373,14 +375,12 @@ Value *eval(Value *tree, Frame *frame) {
             else {
                 Value *evaledOperator = eval(first, frame);
                 Value *evaledArgs = makeNull();
-                while (args->type != NULL_TYPE) {
+                while (args->type == CONS_TYPE) {
                     Value *evaled = eval(car(args), frame);
                     evaledArgs = cons(evaled, evaledArgs);
                     args = cdr(args);
                 }
                 evaledArgs = reverse(evaledArgs);
-                printInterpTree(evaledArgs);
-                printf("\n");
                 return apply(evaledOperator, evaledArgs);
             }
             break;
