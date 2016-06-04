@@ -89,6 +89,119 @@ Value *primitiveAdd(Value *args){
     return result;
 }
 
+Value *primitiveSubtract(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = DOUBLE_TYPE;
+    // If no arguments given, return 0
+    if (args->type == NULL_TYPE) {
+        result->d = 0.0;
+        return result;
+    }
+    double diff = car(args)->i *2;
+    while (args->type != NULL_TYPE) {
+        if (car(args)->type == INT_TYPE) {
+            diff -= car(args)->i;
+        } else if (car(args)->type == DOUBLE_TYPE) {
+            diff -= car(args)->d;
+        }
+        args = cdr(args);
+    }
+    result->d = diff;
+    return result;
+}
+
+Value *primitiveMultiply(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = DOUBLE_TYPE;
+    //if no arguments given, return 0
+    if (args->type == NULL_TYPE){
+        result->d = 0.0;
+        return result;
+    }
+    double product = 1.0;
+    while (args->type != NULL_TYPE){
+        if (car(args)->type == INT_TYPE) {
+            product *= car(args)->i;
+        }
+        else if (car(args)->type == DOUBLE_TYPE){
+            product *= car(args)->d;
+        }
+        args = cdr(args);
+    }
+    result->d = product;
+    return result;
+}
+
+Value *primitiveDivide(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = DOUBLE_TYPE;
+    //if no arguments given, return 0
+    if (args->type == NULL_TYPE){
+        result->d = 0.0;
+        return result;
+    }
+    double quotient = car(args)->i;
+    if (car(cdr(args))->type == INT_TYPE) {
+        quotient /= car(cdr(args))->i;
+    }
+    else if (car(cdr(args))->type == DOUBLE_TYPE){
+        quotient /= car(cdr(args))->d;
+    }
+    result->d = quotient;
+    return result;
+}
+
+Value *primitiveModulo(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = INT_TYPE;
+    int num = car(args)->i;
+    int nom = car(cdr(args))->i;
+    int ans = num % nom;
+    result->i = ans;
+    return result;
+}
+
+Value *primitiveLess(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = BOOL_TYPE;
+    int first = car(args)->i;
+    int second = car(cdr(args))->i;
+    int ans = 0;
+    if (first < second){
+        ans = 1;
+    }
+    result->i = ans;
+    return result;
+}
+
+Value *primitiveMore(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = BOOL_TYPE;
+    int first = car(args)->i;
+    int second = car(cdr(args))->i;
+    int ans = 0;
+    if (first > second){
+        ans = 1;
+    }
+    result->i = ans;
+    return result;
+}
+
+Value *primitiveEqual(Value *args){
+    Value *result = talloc(sizeof(Value));
+    result->type = BOOL_TYPE;
+    int first = car(args)->i;
+    int second = car(cdr(args))->i;
+    int ans = 0;
+    if (first == second){
+        ans = 1;
+    }
+    result->i = ans;
+    return result;
+}
+
+
+
 // Primitive null? checks if args is null
 Value *primitiveNull(Value *args) {
     // Error checking: if more than one argument, throw error
@@ -163,6 +276,13 @@ void interpret(Value *tree){
     globalFrame->bindings = makeNull();
     globalFrame->parent = NULL;
     bind("+", primitiveAdd, globalFrame);
+    bind("-", primitiveSubtract, globalFrame);
+    bind("*", primitiveMultiply, globalFrame);
+    bind("/", primitiveDivide, globalFrame);
+    bind("%", primitiveModulo, globalFrame);
+    bind("<", primitiveLess, globalFrame);
+    bind(">", primitiveMore, globalFrame);
+    bind("=", primitiveEqual, globalFrame);
     bind("null?", primitiveNull, globalFrame);
     bind("car", primitiveCar, globalFrame);
     bind("cdr", primitiveCdr, globalFrame);
