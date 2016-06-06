@@ -458,33 +458,27 @@ Value *evalLambda(Value *args, Frame *frames) {
 }
 
 // Function for evaluating 'let*' procedures in Scheme
-Value *evalLetStar(Value *args, Frame *frame) {
-    Frame *parFrame = frame;
+// Does not work properly at the moment
+Value *evalLetStar(Value *args, Frame *frames) {
+    Frame *parFrame = frames;
     Frame *curFrame = talloc(sizeof(Frame));
     curFrame->parent = parFrame;
     curFrame->bindings = makeNull();
     Value *allFrames = makeNull();
-    
-    //loop through args
     while (length(args) > 0) {
-        Value *vars = car(args);
+        Value *var = car(args);
         Value *expr = cdr(args);
-        Value *bindRead;
+        Value *curBinding;
         Value *sList = makeNull();
-        
-        //loop over bindings
-        while (vars->type == CONS_TYPE) {
-            bindRead = car(vars);
-            
+        while (var->type == CONS_TYPE) {
+            curBinding = car(var);
             Frame *newFrame = talloc(sizeof(Frame));
             newFrame->parent = curFrame;
             newFrame->bindings = makeNull();
-            
-            addBinding(car(bindRead), car(cdr(bindRead)), newFrame);
+            addBinding(car(curBinding), car(cdr(curBinding)), newFrame);
             curFrame = newFrame;
-            vars = cdr(vars);
+            var = cdr(var);
         }
-        
         Value *curList = expr;
         while (curList->type == CONS_TYPE) {
             sList = cons(eval(car(curList), curFrame), sList);
@@ -493,16 +487,16 @@ Value *evalLetStar(Value *args, Frame *frame) {
         allFrames = cons(sList, allFrames);
         args = cdr(args);
     }
-
     return allFrames;
 }
 
 // Function for evaluating 'letrec' procedures in Scheme
-Value *evalLetrec(Value *args, Frame *frame) {
+// Does not work properly at the moment
+Value *evalLetrec(Value *args, Frame *frames) {
     Frame *letFrame = talloc(sizeof(Frame));
-    letFrame->parent = frame;
+    letFrame->parent = frames;
     letFrame->bindings = makeNull();
-    Value *sList = makeNull();
+    Value *result = makeNull();
     if (args->type != CONS_TYPE)
         evaluationError();
     if (cdr(args)->type == NULL_TYPE)
@@ -513,20 +507,20 @@ Value *evalLetrec(Value *args, Frame *frame) {
         evaluationError();      
     if (car(car(car(args)))->type != SYMBOL_TYPE)
         evaluationError();
-    Value *vars = car(args);  
-    Value *expr = cdr(args);
-    Value *bindRead;
-    while (vars->type == CONS_TYPE) {
-        bindRead = car(vars);
-        addBinding(car(bindRead), car(cdr(bindRead)),  letFrame);
-        vars = cdr(vars);      
+    Value *var = car(args);  
+    Value *val = cdr(args);
+    Value *curBinding;
+    while (var->type == CONS_TYPE) {
+        curBinding = car(var);
+        addBinding(car(curBinding), car(cdr(curBinding)),  letFrame);
+        var = cdr(var);      
     }
-    Value *curList = expr;
+    Value *curList = val;
     while (curList->type == CONS_TYPE) {
-        sList = cons(eval(car(curList), letFrame), sList);
+        result = cons(eval(car(curList), letFrame), result);
         curList = cdr(curList);
     }
-    return sList;
+    return result;
 }
 
 // Function for evaluating 'set!' procedures in Scheme
@@ -539,7 +533,7 @@ Value *evalSet(Value *args, Frame *frames) {
         curBindings = curFrame->bindings;
         while (curBindings->type != NULL_TYPE) {      
             Value *var = car(args);
-            Value *expr = cdr(args);
+            Value *val = cdr(args);
             if (!strcmp(var->s, car(car(curBindings))->s)) {
                 addBinding(car(args), car(cdr(args)), frames);
             }
