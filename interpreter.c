@@ -633,6 +633,7 @@ Value *evalAnd(Value *args, Frame *frame)
 ---------END SPECIAL FORMS----------
 ----------------------------------*/
 
+// Function for the application of Scheme procedures
 Value *apply(Value *function, Value *args) {
     if (function->type == CLOSURE_TYPE) {
         if (length(args) != length(function->cl.paramNames)) {
@@ -665,6 +666,7 @@ Value *apply(Value *function, Value *args) {
     }
 }
 
+// Evaluates each element in the parse tree
 Value *eval(Value *tree, Frame *frame) {
     Value *result;
     Value *first;
